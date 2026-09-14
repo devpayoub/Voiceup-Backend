@@ -14,6 +14,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -105,15 +107,19 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+# Render/Neon set DATABASE_URL (a single connection string). Local docker-compose
+# instead sets the individual POSTGRES_* vars, so build the equivalent URL from
+# those as the default when DATABASE_URL isn't present.
+_local_db_url = (
+    f"postgresql://{os.environ.get('POSTGRES_USER', 'voiceup')}:"
+    f"{os.environ.get('POSTGRES_PASSWORD', 'voiceup')}@"
+    f"{os.environ.get('POSTGRES_HOST', 'db')}:"
+    f"{os.environ.get('POSTGRES_PORT', '5432')}/"
+    f"{os.environ.get('POSTGRES_DB', 'voiceup')}"
+)
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'voiceup'),
-        'USER': os.environ.get('POSTGRES_USER', 'voiceup'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'voiceup'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-    }
+    'default': dj_database_url.config(default=_local_db_url, conn_max_age=600)
 }
 
 
