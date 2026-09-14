@@ -19,7 +19,10 @@ from django.urls import include, path
 
 from apps.accounts.views import MeView
 
+from .views import status_view
+
 urlpatterns = [
+    path('', status_view),
     path('admin/', admin.site.urls),
     path('api/auth/', include('apps.accounts.urls')),
     path('api/users/me/', MeView.as_view(), name='users-me'),
