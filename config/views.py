@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from django.conf import settings
@@ -5,12 +6,18 @@ from django.http import HttpResponse
 
 
 def status_view(request):
-    try:
-        commit = subprocess.check_output(
-            ['git', 'rev-parse', '--short', 'HEAD'], cwd=settings.BASE_DIR
-        ).decode().strip()
-    except Exception:
-        commit = 'unknown'
+    # Render auto-sets RENDER_GIT_COMMIT (full SHA) for every deploy; its runtime
+    # image has no .git dir, so shelling out to git only works for local dev.
+    render_commit = os.environ.get('RENDER_GIT_COMMIT')
+    if render_commit:
+        commit = render_commit[:7]
+    else:
+        try:
+            commit = subprocess.check_output(
+                ['git', 'rev-parse', '--short', 'HEAD'], cwd=settings.BASE_DIR
+            ).decode().strip()
+        except Exception:
+            commit = 'unknown'
 
     html = f"""<!DOCTYPE html>
 <html><head><title>VoiceUp API</title></head>
